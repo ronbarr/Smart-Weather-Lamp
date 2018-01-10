@@ -616,10 +616,10 @@ def	pageLightSettings() {
 			input ( //Select brightness
 				name:			"brightnessLevel", 
 				type:			"number", 
-				title: 			"Brightness Level (1-100)?",
+				title: 			"Brightness Level (1-100)? (0 = do not change brightness)",
 				required: 		false,
-				range:			"1..100",
-				defaultValue:	100
+				range:			"0..100",
+				defaultValue:	0
 			)
 			paragraph	"Do you want to set the light(s) back to the color/level they were at before the weather was displayed? Due to the way SmartThings polls devices this may not always work as expected."
 			input (
@@ -1329,12 +1329,12 @@ def sendcolor(color) {
 	def hueColor = 0
 	def saturation = 100
 
-	//Use the user specified brightness level. If they exceeded the min or max values, overwrite the brightness with the actual min/max
-	if (brightnessLevel<1) {
-		brightnessLevel=1
-	} else if (brightnessLevel>100) {
+	//Use the user specified brightness level. If they exceeded the max values, overwrite the brightness with the actual max
+    //0 = do not change brightness
+	if (brightnessLevel>100) {
 		brightnessLevel=100
-	}
+	} else if (brightnessLevel == 0) {
+    }
 	
 	def hsl = getColorDefinitions(color)
 	
@@ -1394,7 +1394,10 @@ def sendcolor(color) {
 		hues*.on()
 		hues*.setHue(hueColor)
 		hues*.setSaturation(saturation)
-		hues*.setLevel(brightnessLevel)
+        // Set brightness if needed.
+		if (brightnessLevel != 0) {
+        	hues*.setLevel(brightnessLevel)
+        }
 	} catch (err) {
 		debug(err)
 		debug("There was a problem changing bulb color", true)
